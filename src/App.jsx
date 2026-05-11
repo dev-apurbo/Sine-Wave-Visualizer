@@ -4,7 +4,7 @@ import { Activity } from 'lucide-react';
 const SineWaveVisualizer = () => {
   const [phaseDegree, setPhaseDegree] = useState(0);
   const [axisYOffset, setAxisYOffset] = useState(0);
-  const [axisXOffset, setAxisXOffset] = useState(0);
+  const [axisXOffset, setAxisXOffset] = useState(350);
 
   // SVG dimensions
   const width = 800;
@@ -195,10 +195,10 @@ const SineWaveVisualizer = () => {
             <div style={{marginTop: '1rem', display: 'flex'}}>
                <button 
                   className="preset-btn"
-                  onClick={() => { setAxisXOffset(0); setAxisYOffset(0); }}
+                  onClick={() => { setAxisXOffset(350); setAxisYOffset(0); }}
                   style={{ flex: 1 }}
                 >
-                  Reset Axes to Center
+                  Reset Axes to Default
                 </button>
             </div>
           </div>
