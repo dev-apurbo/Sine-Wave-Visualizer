@@ -3,6 +3,8 @@ import { Activity } from 'lucide-react';
 
 const SineWaveVisualizer = () => {
   const [phaseDegree, setPhaseDegree] = useState(0);
+  const [axisYOffset, setAxisYOffset] = useState(0);
+  const [axisXOffset, setAxisXOffset] = useState(0);
 
   // SVG dimensions
   const width = 800;
@@ -13,12 +15,15 @@ const SineWaveVisualizer = () => {
     const points = [];
     // 2 full cycles
     const cycles = 2;
-    const pointsCount = 200;
+    const pointsCount = 400; // Increased resolution
     
-    // The usable drawing area
+    // The usable drawing area for frequency calculation
     const drawWidth = width - padding * 2;
     const drawHeight = height - padding * 2;
-    const cy = height / 2;
+    
+    // Center point shifted by axis offsets
+    const cy = height / 2 + axisYOffset;
+    const cx = padding + axisXOffset;
     
     // amplitude
     const A = drawHeight / 2;
@@ -28,19 +33,21 @@ const SineWaveVisualizer = () => {
     
     const phaseRad = phaseOff * (Math.PI / 180);
     
+    // Draw from edge to edge
     for (let i = 0; i <= pointsCount; i++) {
-      const x = (i / pointsCount) * drawWidth;
+      const svgX = (i / pointsCount) * width;
+      const mathX = svgX - cx;
       // SVG y is inverted, so we subtract
-      const y = cy - A * Math.sin(freq * x + phaseRad);
-      points.push(`${x + padding},${y}`);
+      const y = cy - A * Math.sin(freq * mathX + phaseRad);
+      points.push(`${svgX},${y}`);
     }
     
     return `M ${points.join(' L ')}`;
   };
 
   const parsedPhase = (phaseDegree === '-' || phaseDegree === '') ? 0 : Number(phaseDegree);
-  const dynamicWavePath = useMemo(() => drawWave(parsedPhase), [parsedPhase]);
-  const referenceWavePath = useMemo(() => drawWave(0), []);
+  const dynamicWavePath = useMemo(() => drawWave(parsedPhase), [parsedPhase, axisXOffset, axisYOffset]);
+  const referenceWavePath = useMemo(() => drawWave(0), [axisXOffset, axisYOffset]);
 
   const handleSliderChange = (e) => {
     setPhaseDegree(Number(e.target.value));
@@ -77,8 +84,8 @@ const SineWaveVisualizer = () => {
             <line x1={(width/4)*3} y1="0" x2={(width/4)*3} y2={height} className="grid-line" />
 
             {/* Axes */}
-            <line x1="0" y1={height/2} x2={width} y2={height/2} className="axis-line" />
-            <line x1={padding} y1="0" x2={padding} y2={height} className="axis-line" />
+            <line x1="0" y1={height/2 + axisYOffset} x2={width} y2={height/2 + axisYOffset} className="axis-line" />
+            <line x1={padding + axisXOffset} y1="0" x2={padding + axisXOffset} y2={height} className="axis-line" />
 
             {/* Reference Wave (0 phase) */}
             <path d={referenceWavePath} className="reference-wave" />
@@ -147,6 +154,52 @@ const SineWaveVisualizer = () => {
                   {preset > 0 ? `+${preset}°` : `${preset}°`}
                 </button>
               ))}
+            </div>
+          </div>
+          
+          <div className="control-group">
+            <div className="control-header">
+              <span className="control-label">Axis Position</span>
+            </div>
+            
+            <div style={{marginTop: '0.5rem'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem'}}>
+                <span style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>Horizontal Axis (Up/Down)</span>
+                <span style={{fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold'}}>{axisYOffset > 0 ? '+' : ''}{axisYOffset}px</span>
+              </div>
+              <input 
+                type="range" 
+                min="-120" 
+                max="120" 
+                step="1" 
+                value={axisYOffset} 
+                onChange={(e) => setAxisYOffset(Number(e.target.value))} 
+              />
+            </div>
+
+            <div style={{marginTop: '1rem'}}>
+              <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem'}}>
+                <span style={{fontSize: '0.85rem', color: 'var(--text-muted)'}}>Vertical Axis (Left/Right)</span>
+                <span style={{fontSize: '0.85rem', color: 'var(--primary)', fontWeight: 'bold'}}>{axisXOffset > 0 ? '+' : ''}{axisXOffset}px</span>
+              </div>
+              <input 
+                type="range" 
+                min="-350" 
+                max="350" 
+                step="1" 
+                value={axisXOffset} 
+                onChange={(e) => setAxisXOffset(Number(e.target.value))} 
+              />
+            </div>
+            
+            <div style={{marginTop: '1rem', display: 'flex'}}>
+               <button 
+                  className="preset-btn"
+                  onClick={() => { setAxisXOffset(0); setAxisYOffset(0); }}
+                  style={{ flex: 1 }}
+                >
+                  Reset Axes to Center
+                </button>
             </div>
           </div>
         </div>
