@@ -6,6 +6,7 @@
   --glass-border: rgba(255, 255, 255, 0.1);
   --primary: #00e5ff;
   --secondary: #651fff;
+  --tertiary: #ff007f;
   --text-main: #ffffff;
   --text-muted: #94a3b8;
 }
@@ -277,6 +278,14 @@ input[type="number"]:focus {
   transition: d 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.cos-wave-path {
+  fill: none;
+  stroke: var(--tertiary);
+  stroke-width: 3;
+  filter: drop-shadow(0 0 8px rgba(255, 0, 127, 0.6));
+  transition: d 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .reference-wave {
   fill: none;
   stroke: var(--secondary);
@@ -324,4 +333,9 @@ input[type="number"]:focus {
 
 .legend-secondary {
   background: var(--secondary);
+}
+
+.legend-tertiary {
+  background: var(--tertiary);
+  box-shadow: 0 0 8px rgba(255, 0, 127, 0.6);
 }

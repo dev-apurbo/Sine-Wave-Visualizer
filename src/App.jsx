@@ -5,13 +5,16 @@ const SineWaveVisualizer = () => {
   const [phaseDegree, setPhaseDegree] = useState(0);
   const [axisYOffset, setAxisYOffset] = useState(0);
   const [axisXOffset, setAxisXOffset] = useState(350);
+  const [showSineWave, setShowSineWave] = useState(true);
+  const [showCosWave, setShowCosWave] = useState(true);
+  const [showRefWave, setShowRefWave] = useState(true);
 
   // SVG dimensions
   const width = 800;
   const height = 300;
   const padding = 20;
   
-  const drawWave = (phaseOff) => {
+  const drawWave = (phaseOff, isCos = false) => {
     const points = [];
     // 2 full cycles
     const cycles = 2;
@@ -32,13 +35,14 @@ const SineWaveVisualizer = () => {
     const freq = (cycles * 2 * Math.PI) / drawWidth;
     
     const phaseRad = phaseOff * (Math.PI / 180);
+    const waveFunc = isCos ? Math.cos : Math.sin;
     
     // Draw from edge to edge
     for (let i = 0; i <= pointsCount; i++) {
       const svgX = (i / pointsCount) * width;
       const mathX = svgX - cx;
       // SVG y is inverted, so we subtract
-      const y = cy - A * Math.sin(freq * mathX + phaseRad);
+      const y = cy - A * waveFunc(freq * mathX + phaseRad);
       points.push(`${svgX},${y}`);
     }
     
@@ -46,8 +50,9 @@ const SineWaveVisualizer = () => {
   };
 
   const parsedPhase = (phaseDegree === '-' || phaseDegree === '') ? 0 : Number(phaseDegree);
-  const dynamicWavePath = useMemo(() => drawWave(parsedPhase), [parsedPhase, axisXOffset, axisYOffset]);
-  const referenceWavePath = useMemo(() => drawWave(0), [axisXOffset, axisYOffset]);
+  const dynamicWavePath = useMemo(() => drawWave(parsedPhase, false), [parsedPhase, axisXOffset, axisYOffset]);
+  const cosWavePath = useMemo(() => drawWave(parsedPhase, true), [parsedPhase, axisXOffset, axisYOffset]);
+  const referenceWavePath = useMemo(() => drawWave(0, false), [axisXOffset, axisYOffset]);
 
   const handleSliderChange = (e) => {
     setPhaseDegree(Number(e.target.value));
@@ -88,27 +93,73 @@ const SineWaveVisualizer = () => {
             <line x1={padding + axisXOffset} y1="0" x2={padding + axisXOffset} y2={height} className="axis-line" />
 
             {/* Reference Wave (0 phase) */}
-            <path d={referenceWavePath} className="reference-wave" />
+            {showRefWave && <path d={referenceWavePath} className="reference-wave" />}
             
-            {/* Dynamic Wave */}
-            <path d={dynamicWavePath} className="wave-path" />
+            {/* Dynamic Waves */}
+            {showSineWave && <path d={dynamicWavePath} className="wave-path" />}
+            {showCosWave && <path d={cosWavePath} className="cos-wave-path" />}
           </svg>
         </div>
         
         <div className="legend">
-          <div className="legend-item">
-            <div className="legend-color legend-primary"></div>
-            <span>Current Phase ({parsedPhase}°)</span>
-          </div>
-          <div className="legend-item">
-            <div className="legend-color legend-secondary" style={{opacity: 0.5}}></div>
-            <span>Reference (0°)</span>
-          </div>
+          {showSineWave && (
+            <div className="legend-item">
+              <div className="legend-color legend-primary"></div>
+              <span>Sine Phase ({parsedPhase}°)</span>
+            </div>
+          )}
+          {showCosWave && (
+            <div className="legend-item">
+              <div className="legend-color legend-tertiary"></div>
+              <span>Cosine Phase ({parsedPhase}°)</span>
+            </div>
+          )}
+          {showRefWave && (
+            <div className="legend-item">
+              <div className="legend-color legend-secondary" style={{opacity: 0.5}}></div>
+              <span>Reference (0°)</span>
+            </div>
+          )}
         </div>
       </div>
 
       <div className="glass-panel">
         <div className="controls-container">
+          <div className="control-group">
+            <div className="control-header">
+              <span className="control-label">Wave Types</span>
+            </div>
+            <div style={{display: 'flex', gap: '1.5rem', marginTop: '0.5rem', flexWrap: 'wrap'}}>
+              <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                <input 
+                  type="checkbox" 
+                  checked={showSineWave} 
+                  onChange={(e) => setShowSineWave(e.target.checked)} 
+                  style={{accentColor: 'var(--primary)', width: '18px', height: '18px', cursor: 'pointer'}} 
+                />
+                <span style={{color: showSineWave ? 'var(--text-main)' : 'var(--text-muted)'}}>Sine Wave</span>
+              </label>
+              <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                <input 
+                  type="checkbox" 
+                  checked={showCosWave} 
+                  onChange={(e) => setShowCosWave(e.target.checked)} 
+                  style={{accentColor: 'var(--tertiary)', width: '18px', height: '18px', cursor: 'pointer'}} 
+                />
+                <span style={{color: showCosWave ? 'var(--text-main)' : 'var(--text-muted)'}}>Cosine Wave</span>
+              </label>
+              <label style={{display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'}}>
+                <input 
+                  type="checkbox" 
+                  checked={showRefWave} 
+                  onChange={(e) => setShowRefWave(e.target.checked)} 
+                  style={{accentColor: 'var(--secondary)', width: '18px', height: '18px', cursor: 'pointer'}} 
+                />
+                <span style={{color: showRefWave ? 'var(--text-main)' : 'var(--text-muted)'}}>Reference (0°)</span>
+              </label>
+            </div>
+          </div>
+
           <div className="control-group">
             <div className="control-header">
               <span className="control-label">Phase Shift (Degrees)</span>
@@ -157,6 +208,8 @@ const SineWaveVisualizer = () => {
             </div>
           </div>
           
+
+
           <div className="control-group">
             <div className="control-header">
               <span className="control-label">Axis Position</span>
